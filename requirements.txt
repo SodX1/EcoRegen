@@ -1,0 +1,16 @@
+fastapi[all]
+python-multipart
+bcrypt==4.3.0
+python-jose
+sqlalchemy
+jinja2
+aiofiles
+pillow
+opencv-python
+numpy
+torch
+torchvision
+SQLAlchemy>=2.0
+pydantic
+python-jose[cryptography]
+uvicorn[standard]

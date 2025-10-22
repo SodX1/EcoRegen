@@ -1,0 +1,9 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+}
+.card {
+    border-radius: 1rem;
+}
+.btn-success {
+    font-weight: 600;
+}

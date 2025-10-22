@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center">
+  <h2 class="text-success">Профиль пользователя</h2>
+  <div class="card mt-4 shadow-sm mx-auto" style="max-width: 500px;">
+    <div class="card-body">
+      <h4>{{ user.username }}</h4>
+      <p>Email: {{ user.email }}</p>
+      {% if user.full_name %}
+      <p>Полное имя: {{ user.full_name }}</p>
+      {% endif %}
+      <p>Аккаунт активен: {{ "Да" if user.is_active else "Нет" }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

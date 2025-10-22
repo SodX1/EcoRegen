@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center mt-5">
+  {% if user %}
+    <h3 class="text-success">Добро пожаловать, {{ user.username }}!</h3>
+    <p>Теперь вы можете использовать возможности EcoRegen.</p>
+  {% else %}
+    <h3 class="text-success">Добро пожаловать в EcoRegen!</h3>
+    <p>Пожалуйста, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

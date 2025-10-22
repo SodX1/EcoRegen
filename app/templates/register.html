@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center text-success">Регистрация</h3>
+
+        {% if error %}
+          <div class="alert alert-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/register/form">
+          <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Имя пользователя</label>
+            <input type="text" name="username" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Полное имя (необязательно)</label>
+            <input type="text" name="full_name" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label>Пароль</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+        </form>
+        <p class="mt-3 text-center">Уже есть аккаунт? <a href="/login">Войти</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
