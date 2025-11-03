@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
 from .database import SessionLocal
-from .auth.utils import SECRET_KEY, ALGORITHM
+from app.features.auth.utils import SECRET_KEY, ALGORITHM
 from .models import User
 
 # Получение сессии БД

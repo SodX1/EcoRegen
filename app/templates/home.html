@@ -1,9 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="text-center mt-5">
+<div class="d-flex flex-column align-items-center mt-5">
   {% if user %}
     <h3 class="text-success">Добро пожаловать, {{ user.username }}!</h3>
-    <p>Теперь вы можете использовать возможности EcoRegen.</p>
+    <a class="btn btn-success mb-4" href="/tasks">Создать задачу на исследование</a>
+    <div class="w-75 w-md-50">
+      <h3 class="text-center">Существующие задачи</h3>
+      <ul class="list-group">
+        {% for t in tasks %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ t.title }}</strong>
+              <div class="small text-muted">{{ t.description or '' }}</div>
+            </div>
+            <div class="btn-group" role="group">
+              <a class="btn btn-sm btn-outline-primary" href="/tasks/{{ t.id }}">Открыть</a>
+              <form action="/tasks/{{ t.id }}/delete" method="post" style="display:inline; margin-left:6px;">
+                <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Удалить задачу?')">Удалить</button>
+              </form>
+            </div>
+          </li>
+        {% else %}
+          <li class="list-group-item">Задач нет</li>
+        {% endfor %}
+      </ul>
+    </div>
   {% else %}
     <h3 class="text-success">Добро пожаловать в EcoRegen!</h3>
     <p>Пожалуйста, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.</p>

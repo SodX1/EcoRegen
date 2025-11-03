@@ -6,9 +6,11 @@ from jose import jwt, JWTError
 
 from .database import Base, engine, SessionLocal
 from . import models
-from .auth.routes import router as auth_router
-from .auth.utils import SECRET_KEY, ALGORITHM
+from app.features.auth.routes import router as auth_router
+from app.features.auth.utils import SECRET_KEY, ALGORITHM
 from .models import User
+from .models import Task
+from app.features.tasks.routes import router as tasks_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(tasks_router)
 
 
 # --- служебная функция для получения пользователя из cookie ---
@@ -59,4 +62,10 @@ async def add_user_to_request(request: Request, call_next):
 
 @app.get("/")
 def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request, "user": request.state.user})
+    # Показываем последние задачи на главной странице
+    db = SessionLocal()
+    try:
+        tasks = db.query(Task).order_by(Task.created_at.desc()).limit(5).all()
+    finally:
+        db.close()
+    return templates.TemplateResponse("home.html", {"request": request, "user": request.state.user, "tasks": tasks})

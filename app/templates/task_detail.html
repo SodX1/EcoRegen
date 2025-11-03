@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">{{ task.title }}</h4>
+    <p class="card-text">{{ task.description or '' }}</p>
+    <p class="text-muted">Создано: {{ task.created_at }}</p>
+
+    {% if task.photo_path %}
+      <div class="mb-3">
+        <img src="{{ task.photo_path }}" class="img-fluid" alt="photo">
+      </div>
+    {% endif %}
+
+    {% if not user %}
+      <p>Войдите, чтобы загрузить фото.</p>
+    {% else %}
+      <form action="/tasks/{{ task.id }}/upload" enctype="multipart/form-data" method="post">
+        <div class="mb-3">
+          <input type="file" name="file" accept="image/*" required />
+        </div>
+        <button class="btn btn-primary">Загрузить фото</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -7,3 +7,8 @@ body {
 .btn-success {
     font-weight: 600;
 }
+
+a, u {
+  text-decoration: none;
+  color: "#rrggbb";
+}
