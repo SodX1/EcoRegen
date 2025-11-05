@@ -7,6 +7,7 @@ import uuid
 
 from app.dependencies import get_db
 from app.models import Task, User
+from app.image.ndvi import compute_ndvi
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter()
@@ -27,7 +28,7 @@ def create_task(request: Request, title: str = Form(...), description: str | Non
     task = Task(title=title, description=description, owner_id=user.id)
     db.add(task)
     db.commit()
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(url="/", status_code=303)
 
 
 @router.get("/tasks/{task_id}", response_class=HTMLResponse)
@@ -45,7 +46,7 @@ def upload_photo(request: Request, task_id: int, file: UploadFile = File(...), d
         return RedirectResponse(url="/login", status_code=303)
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
-        return RedirectResponse(url="/tasks", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
 
     # validate image
     content_type = file.content_type or ""
@@ -68,9 +69,9 @@ def upload_photo(request: Request, task_id: int, file: UploadFile = File(...), d
     return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
 
 
-@router.post("/tasks/{task_id}/delete")
-def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):
-    """Delete task if current user is the owner. Also remove uploaded file if exists."""
+@router.post("/tasks/{task_id}/ndvi")
+def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_index: int = Form(3), db: Session = Depends(get_db)):
+    """Compute NDVI for an uploaded photo. red_index and nir_index are 0-based channel indices."""
     user = request.state.user
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -80,8 +81,47 @@ def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):
         return RedirectResponse(url="/tasks", status_code=303)
 
     if task.owner_id != user.id:
-        # not allowed to delete others' tasks
         return RedirectResponse(url="/tasks", status_code=303)
+
+    if not task.photo_path:
+        return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
+
+    # map /static/... to filesystem path
+    static_prefix = "/static/"
+    if task.photo_path.startswith(static_prefix):
+        file_path = task.photo_path.replace(static_prefix, "app/static/")
+    else:
+        file_path = task.photo_path
+
+    uploads_dir = os.path.join("app", "static", "uploads")
+    ndvi_filename = f"ndvi_{uuid.uuid4().hex}.png"
+    ndvi_path_fs = os.path.join(uploads_dir, ndvi_filename)
+    ndvi_url = f"/static/uploads/{ndvi_filename}"
+
+    ok = compute_ndvi(file_path, ndvi_path_fs, red_index=red_index, nir_index=nir_index)
+    if ok:
+        task.ndvi_path = ndvi_url
+        task.ndvi_settings = f"red_index={red_index},nir_index={nir_index}"
+        db.add(task)
+        db.commit()
+
+    return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
+
+
+@router.post("/tasks/{task_id}/delete")
+def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):
+    """Delete task if current user is the owner. Also remove uploaded file if exists."""
+    user = request.state.user
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        return RedirectResponse(url="/", status_code=303)
+
+    if task.owner_id != user.id:
+        # not allowed to delete others' tasks
+        return RedirectResponse(url="/", status_code=303)
 
     # remove photo file if present and inside uploads
     if task.photo_path:
@@ -96,4 +136,4 @@ def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):
 
     db.delete(task)
     db.commit()
-    return RedirectResponse(url="/tasks", status_code=303)
+    return RedirectResponse(url="/", status_code=303)

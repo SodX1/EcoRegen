@@ -10,6 +10,13 @@
       <div class="mb-3">
         <img src="{{ task.photo_path }}" class="img-fluid" alt="photo">
       </div>
+      {% if task.ndvi_path %}
+        <div class="mb-3">
+          <h5>NDVI результат</h5>
+          <img src="{{ task.ndvi_path }}" class="img-fluid" alt="ndvi">
+          <div class="small text-muted">Параметры: {{ task.ndvi_settings or '-' }}</div>
+        </div>
+      {% endif %}
     {% endif %}
 
     {% if not user %}
@@ -21,6 +28,23 @@
         </div>
         <button class="btn btn-primary">Загрузить фото</button>
       </form>
+      {% if task.photo_path %}
+        <hr />
+        <h5>Проверить фото на NDVI</h5>
+        <form action="/tasks/{{ task.id }}/ndvi" method="post" class="row g-2">
+          <div class="col-auto">
+            <label class="form-label">Red index</label>
+            <input type="number" name="red_index" value="0" class="form-control" min="0" />
+          </div>
+          <div class="col-auto">
+            <label class="form-label">NIR index</label>
+            <input type="number" name="nir_index" value="3" class="form-control" min="0" />
+          </div>
+          <div class="col-auto align-self-end">
+            <button class="btn btn-success">Сделать NDVI</button>
+          </div>
+        </form>
+      {% endif %}
     {% endif %}
   </div>
 </div>

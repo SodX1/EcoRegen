@@ -7,7 +7,7 @@
 /.env
 .idea/
 .vscode/
-App/app/__pycache__/*
+app/__pycache__/
 __pycache__/
 dist/
 .coverage*
@@ -17,3 +17,4 @@ docs/_build/
 app/features/auth/__pycache__/
 app/features/tasks/__pycache__/
 app/__pycache__/
+app/static/uploads/*

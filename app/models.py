@@ -32,4 +32,6 @@ class Task(Base):
     owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     owner = relationship("User", backref="tasks")
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    ndvi_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    ndvi_settings: Mapped[str | None] = mapped_column(String(1024), nullable=True)
 
