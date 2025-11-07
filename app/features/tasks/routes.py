@@ -8,6 +8,7 @@ import uuid
 from app.dependencies import get_db
 from app.models import Task, User
 from app.image.ndvi import compute_ndvi
+import json
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter()
@@ -94,16 +95,79 @@ def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_inde
         file_path = task.photo_path
 
     uploads_dir = os.path.join("app", "static", "uploads")
-    ndvi_filename = f"ndvi_{uuid.uuid4().hex}.png"
+    os.makedirs(uploads_dir, exist_ok=True)
+    # Use a stable filename per task so NDVI results are overwritten rather than creating many files
+    ndvi_filename = f"ndvi_task_{task.id}.png"
     ndvi_path_fs = os.path.join(uploads_dir, ndvi_filename)
     ndvi_url = f"/static/uploads/{ndvi_filename}"
 
     ok = compute_ndvi(file_path, ndvi_path_fs, red_index=red_index, nir_index=nir_index)
     if ok:
         task.ndvi_path = ndvi_url
-        task.ndvi_settings = f"red_index={red_index},nir_index={nir_index}"
+        task.ndvi_params = json.dumps({"red_index": red_index, "nir_index": nir_index})
+        task.ndvi_error = None
         db.add(task)
         db.commit()
+    else:
+        # mark error and clear ndvi_path
+        task.ndvi_error = f"NDVI не получилось для red={red_index}, nir={nir_index}"
+        task.ndvi_path = None
+        task.ndvi_params = json.dumps({"red_index": red_index, "nir_index": nir_index})
+        db.add(task)
+        db.commit()
+    return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
+
+
+
+@router.post("/tasks/{task_id}/segment")
+def make_segmentation(request: Request, task_id: int, method: str = Form("yolo"), conf: float = Form(0.25), db: Session = Depends(get_db)):
+    """Run segmentation on the uploaded photo for the task.
+
+    method: 'yolo' or 'maskrcnn' (fallback will try both if 'yolo' fails)
+    conf: confidence threshold (0..1)
+    """
+    user = request.state.user
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        return RedirectResponse(url="/tasks", status_code=303)
+
+    if task.owner_id != user.id:
+        return RedirectResponse(url="/tasks", status_code=303)
+
+    if not task.photo_path:
+        return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
+
+    static_prefix = "/static/"
+    if task.photo_path.startswith(static_prefix):
+        file_path = task.photo_path.replace(static_prefix, "app/static/")
+    else:
+        file_path = task.photo_path
+
+    uploads_dir = os.path.join("app", "static", "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    seg_filename = f"segm_task_{task.id}.png"
+    seg_path_fs = os.path.join(uploads_dir, seg_filename)
+    seg_url = f"/static/uploads/{seg_filename}"
+
+    # Try requested method; if yolo fails and method=='yolo' we'll fall back to maskrcnn inside utility
+    from app.image.segmentation import run_segmentation
+
+    ok, msg = run_segmentation(file_path, seg_path_fs, method=method, conf=float(conf))
+    if ok:
+        task.segmentation_path = seg_url
+        task.segmentation_params = json.dumps({"method": method, "conf": float(conf)})
+        task.segmentation_error = None
+    else:
+        task.segmentation_error = msg
+        task.segmentation_path = None
+        task.segmentation_params = json.dumps({"method": method, "conf": float(conf)})
+
+    db.add(task)
+    db.commit()
+    return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
 
     return RedirectResponse(url=f"/tasks/{task_id}", status_code=303)
 

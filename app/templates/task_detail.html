@@ -10,14 +10,21 @@
       <div class="mb-3">
         <img src="{{ task.photo_path }}" class="img-fluid" alt="photo">
       </div>
-      {% if task.ndvi_path %}
-        <div class="mb-3">
-          <h5>NDVI результат</h5>
-          <img src="{{ task.ndvi_path }}" class="img-fluid" alt="ndvi">
-          <div class="small text-muted">Параметры: {{ task.ndvi_settings or '-' }}</div>
-        </div>
-      {% endif %}
     {% endif %}
+        {% if task.photo_path %}
+          <div class="mb-3">
+            <h5>NDVI результат</h5>
+            {% if task.ndvi_path %}
+              <img src="{{ task.ndvi_path }}" class="img-fluid" alt="ndvi">
+              <div class="small text-muted">Параметры: {{ task.ndvi_params or '-' }}</div>
+            {% elif task.ndvi_error %}
+              <div class="alert alert-warning">Не удалось построить NDVI: {{ task.ndvi_error }}</div>
+              <div class="small text-muted">Параметры: {{ task.ndvi_params or '-' }}</div>
+            {% else %}
+              <div class="small text-muted">NDVI не построен.</div>
+            {% endif %}
+          </div>
+        {% endif %}
 
     {% if not user %}
       <p>Войдите, чтобы загрузить фото.</p>
@@ -44,6 +51,33 @@
             <button class="btn btn-success">Сделать NDVI</button>
           </div>
         </form>
+        <hr />
+        <h5>Сегментация (YOLO / MaskRCNN)</h5>
+        <form action="/tasks/{{ task.id }}/segment" method="post" class="row g-2">
+          <div class="col-auto">
+            <label class="form-label">Метод</label>
+            <select name="method" class="form-select">
+              <option value="yolo">YOLO (если установлен)</option>
+              <option value="maskrcnn">Mask R-CNN (torchvision, fallback)</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-label">Confidence</label>
+            <input type="number" name="conf" value="0.25" step="0.01" min="0" max="1" class="form-control" />
+          </div>
+          <div class="col-auto align-self-end">
+            <button class="btn btn-primary">Запустить сегментацию</button>
+          </div>
+        </form>
+        {% if task.segmentation_path %}
+          <div class="mt-3">
+            <h6>Результат сегментации</h6>
+            <img src="{{ task.segmentation_path }}" class="img-fluid" alt="segmentation">
+            <div class="small text-muted">Параметры: {{ task.segmentation_params or '-' }}</div>
+          </div>
+        {% elif task.segmentation_error %}
+          <div class="mt-3 alert alert-warning">Сегментация не удалась: {{ task.segmentation_error }}</div>
+        {% endif %}
       {% endif %}
     {% endif %}
   </div>
