@@ -28,22 +28,105 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # path to original uploaded photo (relative URL like /static/uploads/..)
     photo_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     owner = relationship("User", backref="tasks")
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    # path to original uploaded photo (relative URL like /static/uploads/..)
-    photo_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    # path to last generated NDVI image (relative URL)
+
+    # one-to-one relationships to hold NDVI / segmentation / analysis results
+    ndvi = relationship("TaskNDVI", uselist=False, back_populates="task", cascade="all, delete-orphan")
+    segmentation = relationship("TaskSegmentation", uselist=False, back_populates="task", cascade="all, delete-orphan")
+    analysis = relationship("TaskAnalysis", uselist=False, back_populates="task", cascade="all, delete-orphan")
+    # photos attached to the task; cascade so deleting a Task removes its Photos
+    photos = relationship("Photo", back_populates="task", cascade="all, delete-orphan")
+
+
+class TaskNDVI(Base):
+    __tablename__ = "task_ndvi"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
+    task = relationship("Task", back_populates="ndvi")
+
     ndvi_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    # JSON string with last NDVI params (e.g. {"red":0,"nir":2})
     ndvi_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    # last NDVI processing error message (if any)
     ndvi_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    # segmentation fields
+    ndvi_settings: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+
+
+class TaskSegmentation(Base):
+    __tablename__ = "task_segmentation"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
+    task = relationship("Task", back_populates="segmentation")
+
     segmentation_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     segmentation_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
     segmentation_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class TaskAnalysis(Base):
+    __tablename__ = "task_analysis"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
+    task = relationship("Task", back_populates="analysis")
+
+    analysis_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    analysis_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    analysis_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class Photo(Base):
+    __tablename__ = "photos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
+    task = relationship("Task", back_populates="photos")
+
+    path: Mapped[str] = mapped_column(String(512), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    # one-to-one result relationships
+    ndvi = relationship("PhotoNDVI", uselist=False, back_populates="photo", cascade="all, delete-orphan")
+    segmentation = relationship("PhotoSegmentation", uselist=False, back_populates="photo", cascade="all, delete-orphan")
+    analysis = relationship("PhotoAnalysis", uselist=False, back_populates="photo", cascade="all, delete-orphan")
+
+
+class PhotoNDVI(Base):
+    __tablename__ = "photo_ndvi"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    photo_id: Mapped[int] = mapped_column(Integer, ForeignKey("photos.id"), unique=True, nullable=False)
+    photo = relationship("Photo", back_populates="ndvi")
+
     ndvi_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    ndvi_settings: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    ndvi_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    ndvi_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class PhotoSegmentation(Base):
+    __tablename__ = "photo_segmentation"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    photo_id: Mapped[int] = mapped_column(Integer, ForeignKey("photos.id"), unique=True, nullable=False)
+    photo = relationship("Photo", back_populates="segmentation")
+
+    segmentation_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    segmentation_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    segmentation_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class PhotoAnalysis(Base):
+    __tablename__ = "photo_analysis"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    photo_id: Mapped[int] = mapped_column(Integer, ForeignKey("photos.id"), unique=True, nullable=False)
+    photo = relationship("Photo", back_populates="analysis")
+
+    analysis_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    analysis_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    analysis_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
 

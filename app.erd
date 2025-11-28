@@ -1,0 +1,63 @@
+erdiagram EcoRegen
+
+notation=crowsfoot
+
+entity USERS {
+    id: INT key
+    email: VARCHAR(255)
+    username: VARCHAR(64)
+    hashed_password: VARCHAR(255)
+    full_name: VARCHAR(255)
+    is_active: BOOL
+    created_at: DATETIME
+}
+
+entity TASKS {
+    id: INT key
+    title: VARCHAR(255)
+    description: TEXT
+    photo_path: VARCHAR(512)
+    owner_id: INT
+    created_at: DATETIME
+}
+
+entity TASK_ANALYSIS {
+    id: INT key
+    task_id: INT
+    analysis_path: VARCHAR(512)
+    analysis_params: VARCHAR(512)
+    analysis_error: VARCHAR(512)
+}
+
+entity TASK_NDVI {
+    id: INT key
+    task_id: INT
+    ndvi_path: VARCHAR(512)
+    ndvi_params: VARCHAR(512)
+    ndvi_error: VARCHAR(512)
+    ndvi_settings: VARCHAR(1024)
+}
+
+entity TASK_SEGMENTATION {
+    id: INT key
+    task_id: INT
+    segmentation_path: VARCHAR(512)
+    segmentation_params: VARCHAR(512)
+    segmentation_error: VARCHAR(512)
+}
+
+relationship UserTasks {
+    USERS[1] -> TASKS [N]
+}
+
+relationship TaskAnalysis {
+    TASKS[1] -> TASK_ANALYSIS[N]
+}
+
+relationship TaskNdvi {
+    TASKS[1] -> TASK_NDVI[N]
+}
+
+relationship TaskSegmentation {
+    TASKS[1] -> TASK_SEGMENTATION[N]
+}

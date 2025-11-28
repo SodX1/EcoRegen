@@ -12,30 +12,9 @@ def compute_ndvi(input_path: str, output_path: str, red_index: int = 0, nir_inde
     Returns True on success, False on failure.
     """
     try:
-        img = Image.open(input_path)
-        arr = np.array(img)
-        if arr.ndim == 2:
-            # single band
-            return False
-        if arr.ndim == 3:
-            h, w, c = arr.shape
-        else:
-            return False
+        ndvi = compute_ndvi_array(input_path, red_index=red_index, nir_index=nir_index)
 
-        if red_index < 0 or red_index >= c or nir_index < 0 or nir_index >= c:
-            return False
-
-        red = arr[..., red_index].astype(float)
-        nir = arr[..., nir_index].astype(float)
-
-        denom = (nir + red)
-        # avoid division by zero
-        denom[denom == 0] = 1e-6
-        ndvi = (nir - red) / denom
-
-        # clip to [-1,1]
-        ndvi = np.clip(ndvi, -1.0, 1.0)
-        # normalize to 0..1
+        # normalize to 0..1 for visualization
         ndvi_norm = (ndvi + 1.0) / 2.0
 
         # simple color mapping: R = (1-ndvi)*255, G = ndvi*255, B = 0
@@ -50,3 +29,29 @@ def compute_ndvi(input_path: str, output_path: str, red_index: int = 0, nir_inde
         return True
     except Exception:
         return False
+
+
+def compute_ndvi_array(input_path: str, red_index: int = 0, nir_index: int = 3) -> np.ndarray:
+    """Compute and return NDVI array in range [-1.0, 1.0].
+
+    Raises exceptions on invalid input so callers (e.g. analysis) can handle them.
+    """
+    img = Image.open(input_path)
+    arr = np.array(img)
+    if arr.ndim == 2:
+        raise ValueError("single-band image: cannot compute NDVI")
+    if arr.ndim != 3:
+        raise ValueError(f"unsupported array shape: {arr.shape}")
+
+    h, w, c = arr.shape
+    if red_index < 0 or red_index >= c or nir_index < 0 or nir_index >= c:
+        raise ValueError("red_index or nir_index out of range for image channels")
+
+    red = arr[..., red_index].astype(float)
+    nir = arr[..., nir_index].astype(float)
+
+    denom = (nir + red)
+    denom[denom == 0] = 1e-6
+    ndvi = (nir - red) / denom
+    ndvi = np.clip(ndvi, -1.0, 1.0)
+    return ndvi
