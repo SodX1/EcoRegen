@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timedelta
 
 from app.dependencies import get_db
-from app.models import Task, User, TaskAnalysis, TaskNDVI, TaskSegmentation, Photo, PhotoNDVI, PhotoAnalysis, PhotoSegmentation
+from app.models import Task, User, Photo, PhotoNDVI, PhotoAnalysis, PhotoSegmentation
 from app.image.ndvi import compute_ndvi
 from app.image.analysis import hsv_pixel_distribution
 import traceback

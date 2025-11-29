@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           }
           outImg.src = data.path + '?t=' + Date.now();
-          msg.innerHTML = '<div class="alert alert-success">NDVI выполнен</div>';
+          msg.innerHTML = '<div class="alert alert-success">NDVI выполнен (Результат сохраниться после перезагрузки страницы)</div>';
           // restore active tab (Bootstrap may reset active state when DOM changes)
           try {
             if (activeBtn && typeof bootstrap !== 'undefined') {

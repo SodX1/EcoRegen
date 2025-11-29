@@ -21,7 +21,7 @@ entity TASKS {
     created_at: DATETIME
 }
 
-entity TASK_ANALYSIS {
+entity PHOTO_ANALYSIS {
     id: INT key
     task_id: INT
     analysis_path: VARCHAR(512)
@@ -29,7 +29,7 @@ entity TASK_ANALYSIS {
     analysis_error: VARCHAR(512)
 }
 
-entity TASK_NDVI {
+entity PHOTO_NDVI {
     id: INT key
     task_id: INT
     ndvi_path: VARCHAR(512)
@@ -38,7 +38,7 @@ entity TASK_NDVI {
     ndvi_settings: VARCHAR(1024)
 }
 
-entity TASK_SEGMENTATION {
+entity PHOTO_SEGMENTATION {
     id: INT key
     task_id: INT
     segmentation_path: VARCHAR(512)
@@ -51,13 +51,13 @@ relationship UserTasks {
 }
 
 relationship TaskAnalysis {
-    TASKS[1] -> TASK_ANALYSIS[N]
+    TASKS[1] -> PHOTO_ANALYSIS[N]
 }
 
 relationship TaskNdvi {
-    TASKS[1] -> TASK_NDVI[N]
+    TASKS[1] -> PHOTO_NDVI[N]
 }
 
 relationship TaskSegmentation {
-    TASKS[1] -> TASK_SEGMENTATION[N]
+    TASKS[1] -> PHOTO_SEGMENTATION[N]
 }

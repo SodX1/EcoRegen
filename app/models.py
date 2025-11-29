@@ -35,49 +35,8 @@ class Task(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # one-to-one relationships to hold NDVI / segmentation / analysis results
-    ndvi = relationship("TaskNDVI", uselist=False, back_populates="task", cascade="all, delete-orphan")
-    segmentation = relationship("TaskSegmentation", uselist=False, back_populates="task", cascade="all, delete-orphan")
-    analysis = relationship("TaskAnalysis", uselist=False, back_populates="task", cascade="all, delete-orphan")
     # photos attached to the task; cascade so deleting a Task removes its Photos
     photos = relationship("Photo", back_populates="task", cascade="all, delete-orphan")
-
-
-class TaskNDVI(Base):
-    __tablename__ = "task_ndvi"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
-    task = relationship("Task", back_populates="ndvi")
-
-    ndvi_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    ndvi_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    ndvi_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    ndvi_settings: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-
-
-class TaskSegmentation(Base):
-    __tablename__ = "task_segmentation"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
-    task = relationship("Task", back_populates="segmentation")
-
-    segmentation_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    segmentation_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    segmentation_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
-
-
-class TaskAnalysis(Base):
-    __tablename__ = "task_analysis"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id"), unique=True, nullable=False)
-    task = relationship("Task", back_populates="analysis")
-
-    analysis_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    analysis_params: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    analysis_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
-
 
 class Photo(Base):
     __tablename__ = "photos"
