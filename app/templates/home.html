@@ -2,14 +2,15 @@
 {% block content %}
 <div class="d-flex flex-column align-items-center mt-5">
   {% if user %}
-    <h3 class="text-success">Добро пожаловать, {{ user.username }}!</h3>
-    <a class="btn btn-success mb-4" href="/tasks">Создать задачу на исследование</a>
+    <h3 class="text-success">Добро пожаловать, {{ user.full_name }}!</h3>
+    <a class="btn btn-success mb-4" href="/tasks">Создать задачу</a>
     <div class="w-75 w-md-50">
       <h3 class="text-center">Существующие задачи</h3>
       <form method="get" class="d-flex justify-content-center gap-2 mb-3">
-        <input type="date" name="start_date" class="form-control" style="max-width:180px;" />
-        <input type="date" name="end_date" class="form-control" style="max-width:180px;" />
+        <input type="date" name="start_date" value="{{ start_date or '' }}" class="form-control" style="max-width:180px;" />
+        <input type="date" name="end_date" value="{{ end_date or '' }}" class="form-control" style="max-width:180px;" />
         <button class="btn btn-outline-secondary">Фильтровать</button>
+        <a class="btn btn-outline-danger" href="/">Сбросить фильтр</a>
       </form>
       <ul class="list-group">
         {% for t in tasks %}

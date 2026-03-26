@@ -1,5 +1,6 @@
 body {
     font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #f5f7f6 0%, #edf3ef 100%);
 }
 .card {
     border-radius: 1rem;
@@ -10,5 +11,93 @@ body {
 
 a, u {
   text-decoration: none;
-  color: "#rrggbb";
+    color: #1f6f4a;
+}
+
+.navbar {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.task-page .task-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f8f2 100%);
+}
+
+.task-workspace .nav-pills .nav-link {
+    border-radius: 999px;
+    background: #e8f2ea;
+    color: #205739;
+    font-weight: 600;
+}
+
+.task-workspace .nav-pills .nav-link.active {
+    background: #1f7a43;
+    color: #fff;
+}
+
+.task-photo {
+    background: #f6faf7;
+}
+
+.task-photo-center {
+    background: #f6faf7;
+    border: 1px solid #e2ece4;
+}
+
+.task-photo-center img {
+    max-height: 440px;
+    width: auto;
+}
+
+.analysis-tabs {
+    border-bottom: 0;
+}
+
+.analysis-tabs .nav-link {
+    color: #1f6f4a;
+    font-weight: 600;
+}
+
+.analysis-tabs .nav-link.active {
+    background: #f8fbf9;
+    border-color: #e2ece4 #e2ece4 #f8fbf9;
+    color: #1b5d3b;
+}
+
+.compact-tool {
+    background: #f8fbf9;
+    border: 1px solid #e2ece4;
+}
+
+.compact-form .form-control,
+.compact-form .form-select {
+    border-radius: 0.6rem;
+}
+
+.compact-tool img {
+    border: 1px solid #dce8de;
+}
+
+@media (max-width: 992px) {
+    .task-page .task-header .card-body {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container.mt-5 {
+        margin-top: 1rem !important;
+    }
+
+    .task-workspace .nav-pills {
+        gap: 0.35rem !important;
+    }
+
+    .task-workspace .nav-pills .nav-link {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .task-photo-center img {
+        max-height: 280px;
+    }
 }
