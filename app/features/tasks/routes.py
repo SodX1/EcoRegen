@@ -126,7 +126,6 @@ def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_inde
         # try to read photo_id from form data if available
         if not photo:
             form = request.form()
-            # note: request.form() returns an awaitable in Starlette; but FastAPI passes sync here. use safe approach below.
     except Exception:
         pass
 

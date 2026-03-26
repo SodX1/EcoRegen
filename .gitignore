@@ -20,4 +20,4 @@ app/__pycache__/
 app/static/uploads/*
 dataset/
 runs/
-yolo8n.pt
+/*.pt
