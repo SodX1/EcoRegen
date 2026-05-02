@@ -1,22 +1,66 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row">
-  <div class="col-md-6">
-    <h3>Создать задачу</h3>
-    {% if not user %}
-      <p>Пожалуйста, <a href="/login">войдите</a> чтобы создавать задачи.</p>
-    {% else %}
-    <form action="/tasks/create" method="post">
-      <div class="mb-3">
-        <label class="form-label">Название</label>
-        <input class="form-control" name="title" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Описание</label>
-        <textarea class="form-control" name="description"></textarea>
-      </div>
-      <button class="btn btn-success">Создать</button>
-    </form>
-    {% endif %}
+<div class="task-create-page pb-4">
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <h3 class="mb-2">Работа с задачами</h3>
+      <p class="mb-0 text-muted">
+        Здесь вы можете создать новую задачу для анализа изображений и обработки данных.
+        Добавьте понятное название и короткое описание, чтобы команда быстрее включилась в работу.
+      </p>
+    </div>
   </div>
+
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-7">
+      <section class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <h4 class="mb-3">Создать задачу</h4>
+          {% if not user %}
+            <div class="alert alert-light border mb-0">
+              Пожалуйста, <a href="/login">войдите</a>, чтобы создавать задачи.
+            </div>
+          {% else %}
+            <form action="/tasks/create" method="post">
+              <div class="mb-3">
+                <label class="form-label">Название</label>
+                <input class="form-control" name="title" placeholder="Например: Анализ снимка от 26.04" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" name="description" rows="5" placeholder="Кратко опишите цель, источник снимка и ожидаемый результат"></textarea>
+              </div>
+              <button class="btn btn-success">Создать</button>
+            </form>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-5">
+      <section class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <h4 class="mb-3">Что можно сделать здесь</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item px-0">
+              <strong>1. Постановка задачи</strong>
+              <div class="small text-muted">Создайте задачу с понятным названием и описанием.</div>
+            </li>
+            <li class="list-group-item px-0">
+              <strong>2. Анализ в карточке</strong>
+              <div class="small text-muted">После создания откройте задачу и загрузите изображение для обработки.</div>
+            </li>
+            <li class="list-group-item px-0">
+              <strong>3. Контроль результата</strong>
+              <div class="small text-muted">Проверьте результаты сегментации и сохраните итоговые данные.</div>
+            </li>
+          </ul>
+          <div class="alert alert-success mt-3 mb-0">
+            Совет: чем подробнее описание, тем точнее и быстрее обработка.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+ </div>
 {% endblock %}

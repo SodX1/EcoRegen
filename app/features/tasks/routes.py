@@ -372,19 +372,27 @@ def make_segmentation(request: Request, task_id: int, method: str = Form("yolo")
     # Try requested method; if yolo fails and method=='yolo' we'll fall back to maskrcnn inside utility
     from app.image.segmentation import run_segmentation
 
-    ok, msg = run_segmentation(file_path, seg_path_fs, method=method, conf=float(conf))
+    # Clamp values from UI to safe ranges.
+    conf = max(0.0, min(1.0, float(conf)))
+
+    ok, msg = run_segmentation(
+        file_path,
+        seg_path_fs,
+        method=method,
+        conf=conf,
+    )
     pseg = db.query(PhotoSegmentation).filter(PhotoSegmentation.photo_id == photo.id).first()
     if not pseg:
         pseg = PhotoSegmentation(photo_id=photo.id)
 
     if ok:
         pseg.segmentation_path = seg_url
-        pseg.segmentation_params = json.dumps({"method": method, "conf": float(conf)})
+        pseg.segmentation_params = json.dumps({"method": method, "conf": conf})
         pseg.segmentation_error = None
     else:
         pseg.segmentation_error = msg
         pseg.segmentation_path = None
-        pseg.segmentation_params = json.dumps({"method": method, "conf": float(conf)})
+        pseg.segmentation_params = json.dumps({"method": method, "conf": conf})
 
     db.add(pseg)
     try:

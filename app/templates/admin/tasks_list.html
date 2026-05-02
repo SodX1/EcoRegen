@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-8">
+            <h1>Управление задачами</h1>
+        </div>
+        <div class="col-4 text-end">
+            <a href="/admin/" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <!-- Сообщения об успехе -->
+    {% if request.query_params.get('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> {{ request.query_params.get('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Таблица задач -->
+    {% if tasks %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th>Владелец</th>
+                    <th>Создана</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tasks %}
+                <tr>
+                    <td><strong>#{{ t.id }}</strong></td>
+                    <td><strong>{{ t.title }}</strong></td>
+                    <td>
+                        {% if t.description %}
+                            {{ t.description[:50] }}{% if t.description|length > 50 %}...{% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.owner %}
+                            <a href="/admin/users/{{ t.owner.id }}/edit" class="text-decoration-none">
+                                {{ t.owner.username }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Нет владельца</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</small></td>
+                    <td>
+                        <a href="/admin/tasks/{{ t.id }}/edit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <form method="post" action="/admin/tasks/{{ t.id }}/delete" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" 
+                                    onclick="return confirm('Удалить задачу?')">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Задач не найдено.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

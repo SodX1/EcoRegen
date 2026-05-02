@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Панель администратора</h1>
+            <p class="text-muted">Управление пользователями и задачами</p>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Всего пользователей</h5>
+                    <p class="card-text display-6">{{ users_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Активных пользователей</h5>
+                    <p class="card-text display-6">{{ active_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Всего задач</h5>
+                    <p class="card-text display-6">{{ tasks_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Версия</h5>
+                    <p class="card-text display-6">1.0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые ссылки -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Управление пользователями</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                        <li><i class="fas fa-users"></i> {{ users_count }} пользователей в системе</li>
+                        <li><i class="fas fa-check-circle"></i> {{ active_users }} активных</li>
+                    </ul>
+                    <a href="/admin/users" class="btn btn-primary btn-sm me-2">
+                        <i class="fas fa-list"></i> Список пользователей
+                    </a>
+                    <a href="/admin/users/add" class="btn btn-success btn-sm">
+                        <i class="fas fa-user-plus"></i> Добавить пользователя
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Управление задачами</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                        <li><i class="fas fa-tasks"></i> {{ tasks_count }} задач в системе</li>
+                        <li><i class="fas fa-chart-pie"></i> Полный контроль над всеми задачами</li>
+                    </ul>
+                    <a href="/admin/tasks" class="btn btn-info btn-sm">
+                        <i class="fas fa-list"></i> Список задач
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

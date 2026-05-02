@@ -13,6 +13,7 @@ from app.features.auth.utils import SECRET_KEY, ALGORITHM
 from .models import User
 from .models import Task
 from app.features.tasks.routes import router as tasks_router
+from app.features.admin.routes import router as admin_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(tasks_router)
+app.include_router(admin_router)
 
 
 # --- служебная функция для получения пользователя из cookie ---

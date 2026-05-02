@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-8">
+            <h1>Управление пользователями</h1>
+        </div>
+        <div class="col-4 text-end">
+            <a href="/admin/" class="btn btn-secondary btn-sm me-2">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+            <a href="/admin/users/add" class="btn btn-success btn-sm">
+                <i class="fas fa-user-plus"></i> Добавить пользователя
+            </a>
+        </div>
+    </div>
+
+    <!-- Сообщения об успехе -->
+    {% if request.query_params.get('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> {{ request.query_params.get('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Таблица пользователей -->
+    {% if users %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Имя</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Создан</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><strong>#{{ u.id }}</strong></td>
+                    <td>{{ u.email }}</td>
+                    <td><code>{{ u.username }}</code></td>
+                    <td>{{ u.full_name or '-' }}</td>
+                    <td>
+                        {% if u.is_admin %}
+                            <span class="badge bg-danger">Администратор</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Пользователь</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                        {% else %}
+                            <span class="badge bg-warning">Деактивен</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ u.created_at.strftime('%d.%m.%Y %H:%M') }}</small></td>
+                    <td>
+                        <a href="/admin/users/{{ u.id }}/edit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        {% if user.id != u.id %}
+                        <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" 
+                                    onclick="return confirm('Удалить пользователя?')">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Пользователей не найдено.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

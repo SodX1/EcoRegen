@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit"></i> Редактирование задачи #{{ task.id }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="/admin/tasks/{{ task.id }}/edit">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Название <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ task.title }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ task.description or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="owner_id" class="form-label">Владелец</label>
+                            <select class="form-select" id="owner_id" name="owner_id">
+                                <option value="">-- Нет владельца --</option>
+                                {% for u in users %}
+                                <option value="{{ u.id }}" {% if task.owner_id == u.id %}selected{% endif %}>
+                                    {{ u.username }} ({{ u.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Создана:</strong> {{ task.created_at.strftime('%d.%m.%Y %H:%M:%S') }}
+                            {% if task.photos %}
+                                <br><strong>Фотографий:</strong> {{ task.photos|length }}
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save"></i> Сохранить изменения
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <a href="/admin/tasks" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> Отмена
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

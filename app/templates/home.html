@@ -1,39 +1,124 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-column align-items-center mt-5">
-  {% if user %}
-    <h3 class="text-success">Добро пожаловать, {{ user.full_name }}!</h3>
-    <a class="btn btn-success mb-4" href="/tasks">Создать задачу</a>
-    <div class="w-75 w-md-50">
-      <h3 class="text-center">Существующие задачи</h3>
-      <form method="get" class="d-flex justify-content-center gap-2 mb-3">
-        <input type="date" name="start_date" value="{{ start_date or '' }}" class="form-control" style="max-width:180px;" />
-        <input type="date" name="end_date" value="{{ end_date or '' }}" class="form-control" style="max-width:180px;" />
-        <button class="btn btn-outline-secondary">Фильтровать</button>
-        <a class="btn btn-outline-danger" href="/">Сбросить фильтр</a>
-      </form>
-      <ul class="list-group">
-        {% for t in tasks %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <strong>{{ t.title }}</strong>
-              <div class="small text-muted">{{ t.description or '' }}</div>
-            </div>
-            <div class="btn-group" role="group">
-              <a class="btn btn-sm btn-outline-primary" href="/tasks/{{ t.id }}">Открыть</a>
-              <form action="/tasks/{{ t.id }}/delete" method="post" style="display:inline; margin-left:6px;">
-                <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Удалить задачу?')">Удалить</button>
-              </form>
-            </div>
-          </li>
-        {% else %}
-          <li class="list-group-item">Задач нет</li>
-        {% endfor %}
-      </ul>
+<div class="home-page pb-4">
+  <section class="home-intro card border-0 shadow-sm mb-4">
+    <div class="card-body p-4 p-lg-5">
+      {% if user %}
+        <h3 class="text-success mb-2">Добро пожаловать, {{ user.full_name }}!</h3>
+      {% else %}
+        <h3 class="text-success mb-2">Добро пожаловать в EcoRegen!</h3>
+      {% endif %}
+      <p class="mb-0 text-muted">
+        "Eco-Regen" предназначен для решения научных задач изучения и мониторинга окружающей среды с использованием методов и технологий 
+        спутникового дистанционного зондирования с помощью Искуственного интелекта. "Eco-Regen" предоставляет распределенный доступ к многолетним ежедневно пополняющимся архивам спутниковых данных и получаемые на их основе различным информационным продуктам, 
+        в первую очередь ориентированным на характеризующие изучение и анализ состояния растительного покрова. 
+        "Eco-Regen" также предоставляет пользователям возможности по проведения удаленной обработки и анализа спутниковых данных и результатов их обработки с использованием вычислительных ресурсов искуственного интелекта.
+      </p>
     </div>
-  {% else %}
-    <h3 class="text-success">Добро пожаловать в EcoRegen!</h3>
-    <p>Пожалуйста, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.</p>
-  {% endif %}
+  </section>
+
+  <div class="row g-4 home-layout align-items-start">
+    <div class="col-lg-7">
+      <section class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h4 class="mb-0">Задачи</h4>
+            {% if user %}
+              <a class="btn btn-success" href="/tasks">Создать задачу</a>
+            {% endif %}
+          </div>
+
+          {% if user %}
+            <form method="get" class="d-flex flex-wrap gap-2 mb-3">
+              <input type="date" name="start_date" value="{{ start_date or '' }}" class="form-control" style="max-width:190px;" />
+              <input type="date" name="end_date" value="{{ end_date or '' }}" class="form-control" style="max-width:190px;" />
+              <button class="btn btn-outline-secondary">Фильтровать</button>
+              <a class="btn btn-outline-danger" href="/">Сбросить фильтр</a>
+            </form>
+
+            <ul class="list-group home-task-list">
+              {% for t in tasks %}
+                <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                  <div>
+                    <strong>{{ t.title }}</strong>
+                    <div class="small text-muted">{{ t.description or '' }}</div>
+                  </div>
+                  <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-outline-primary" href="/tasks/{{ t.id }}">Открыть</a>
+                    <form action="/tasks/{{ t.id }}/delete" method="post" style="display:inline; margin-left:6px;">
+                      <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Удалить задачу?')">Удалить</button>
+                    </form>
+                  </div>
+                </li>
+              {% else %}
+                <li class="list-group-item">Задач нет</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="alert alert-light border mb-0">
+              Для просмотра и управления задачами <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-5">
+      <section class="card border-0 shadow-sm h-100 updates-card">
+        <div class="card-body p-4">
+          <h4 class="mb-3">Обновления разработки</h4>
+          <ul class="updates-timeline list-unstyled mb-0">
+            <li class="update-item">
+              <div class="update-date">26.04.2026</div>
+              <p class="mb-1"><strong>Обновлено:</strong> структура главной страницы и навигация по задачам.</p>
+              <p class="mb-0"><strong>Добавлено:</strong> журнал изменений с датами и описанием доработок.</p>
+            </li>
+            <li class="update-item">
+              <div class="update-date">18.04.2026</div>
+              <p class="mb-1"><strong>Обновлено:</strong> фильтрация задач по периоду дат.</p>
+              <p class="mb-0"><strong>Добавлено:</strong> более удобные кнопки действий внутри списка задач.</p>
+            </li>
+            <li class="update-item mb-0">
+              <div class="update-date">09.04.2026</div>
+              <p class="mb-1"><strong>Обновлено:</strong> базовый сценарий авторизации пользователей.</p>
+              <p class="mb-0"><strong>Добавлено:</strong> стартовая интеграция модулей анализа изображений.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+  <footer class="site-footer mt-5">
+    <div class="container py-4">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <h5 class="footer-title">EcoRegen</h5>
+                <p class="footer-text mb-0">
+                    Платформа для экологического мониторинга, управления задачами и анализа изображений.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="footer-subtitle">Разделы</h6>
+                <ul class="footer-links list-unstyled mb-0">
+                    <li><a href="/">Главная</a></li>
+                    {% if user %}
+                        <li><a href="/tasks">Задачи</a></li>
+                        {% if user.is_admin %}
+                            <li><a href="/admin/">Админ-панель</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li><a href="/login">Вход</a></li>
+                        <li><a href="/register">Регистрация</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6 class="footer-subtitle">Обновления</h6>
+                <p class="footer-text mb-1">Текущая версия: апрель 2026</p>
+                <p class="footer-text mb-0">Добавлены главная с задачами и журнал изменений.</p>
+            </div>
+        </div>
+    </div>
+</footer>
 </div>
 {% endblock %}

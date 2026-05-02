@@ -22,3 +22,13 @@ app/static/uploads/*
 dataset/
 runs/
 /*.pt
+app/models/yolov8n-seg-trained.pt
+segmentation_test_results/segmented_100507-G-0000A-003_jpg.rf.6bf251ff27d748971f32ff00aeeda75c_result.jpg
+.gitignore
+test_results/result_1_100507-G-0000A-003_jpg.rf.6bf251ff27d748971f32ff00aeeda75c.jpg
+segmentation_test_results/segmented_1278302534_doseng-org_1_jpg.rf.4ee04ba8a80856bd86637fab8ef6760d_result.jpg
+.gitignore
+test_results/result_2_1278302534_doseng-org_1_jpg.rf.4ee04ba8a80856bd86637fab8ef6760d.jpg
+test_results/result_3_2241005_jpg.rf.6fcbb1be527bea8d9348f26964e74838.jpg
+test_results/result_4_2241005_jpg.rf.b49685e4b50a301f66311af694ace873.jpg
+test_results/result_5_25rl-large_jpg.rf.17f8f31f158dcbf07a21f7d656d132d0.jpg
