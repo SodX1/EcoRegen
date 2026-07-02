@@ -15,3 +15,6 @@ pydantic
 python-jose[cryptography]
 uvicorn[standard]
 ultralytics==8.3.225
+pyyaml
+celery==5.3.4
+redis==5.0.1

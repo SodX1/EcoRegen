@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.hsv-form').forEach(function (form) {
+  document.querySelectorAll('.segm-form').forEach(function (form) {
     const tab = form.closest('.tab-pane');
     const msg = document.createElement('div');
-    msg.className = 'ndvi-message mt-2';
+    msg.className = 'segm-message mt-2';
     form.parentNode.insertBefore(msg, form.nextSibling);
 
     form.addEventListener('submit', async function (ev) {
@@ -23,22 +23,22 @@ document.addEventListener('DOMContentLoaded', function () {
           const photoId = photoIdInput ? photoIdInput.value : null;
           let outImg = null;
           if (photoId) {
-            const viewerPane = document.getElementById('viewer-hsv-pane-' + photoId);
+            const viewerPane = document.getElementById('viewer-segm-pane-' + photoId);
             if (viewerPane) {
-              outImg = viewerPane.querySelector('img.hsv-result');
+              outImg = viewerPane.querySelector('img.segm-result');
               if (!outImg) {
                 outImg = document.createElement('img');
-                outImg.className = 'img-fluid rounded mb-2 hsv-result';
+                outImg.className = 'img-fluid rounded mb-2 segm-result';
                 viewerPane.innerHTML = '';
                 viewerPane.appendChild(outImg);
               }
             }
           }
           if (!outImg) {
-            outImg = tab ? tab.querySelector('img.hsv-result') : null;
+            outImg = tab ? tab.querySelector('img.segm-result') : null;
             if (!outImg) {
               outImg = document.createElement('img');
-              outImg.className = 'img-fluid hsv-result mt-2';
+              outImg.className = 'img-fluid segm-result mt-2';
               if (msg && msg.parentNode) {
                 msg.parentNode.insertBefore(outImg, msg);
               } else if (tab) {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           }
           outImg.src = data.path + '?t=' + Date.now();
-          msg.innerHTML = '<div class="alert alert-success">HSV выполнен (Результат сохраниться после перезагрузки страницы)</div>';
+          msg.innerHTML = '<div class="alert alert-success">Сегментация выполнена</div>';
           // restore active tab (Bootstrap may reset active state when DOM changes)
           try {
             if (activeBtn && typeof bootstrap !== 'undefined') {

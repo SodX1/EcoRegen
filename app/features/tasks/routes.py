@@ -100,7 +100,7 @@ def upload_photo(request: Request, task_id: int, files: List[UploadFile] = File(
 
 
 @router.post("/tasks/{task_id}/ndvi")
-def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_index: int = Form(3), photo_path: str | None = Form(None), db: Session = Depends(get_db)):
+def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_index: int = Form(3), red_name: str | None = Form(None), nir_name: str | None = Form(None), r_index: int | None = Form(None), g_index: int | None = Form(None), b_index: int | None = Form(None), r_name: str | None = Form(None), g_name: str | None = Form(None), b_name: str | None = Form(None), photo_path: str | None = Form(None), db: Session = Depends(get_db)):
     """Compute NDVI for an uploaded photo. red_index and nir_index are 0-based channel indices."""
     user = request.state.user
     if not user:
@@ -154,7 +154,83 @@ def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_inde
     ndvi_path_fs = os.path.join(uploads_dir, ndvi_filename)
     ndvi_url = f"/static/uploads/{ndvi_filename}"
 
-    ok = compute_ndvi(file_path, ndvi_path_fs, red_index=red_index, nir_index=nir_index)
+    # compute_ndvi now returns an NDVIResult; save visualization using its plot() method
+    try:
+        rgb_indices = None
+        rgb_names = None
+        band_names = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
+
+        def map_band(name: str | None) -> int | None:
+            if not name:
+                return None
+            try:
+                return band_names.index(name)
+            except ValueError:
+                return None
+
+        def prefer_name_over_index(index_value: int | None, name_value: str | None) -> int | None:
+            """If a band name is provided and recognized, it overrides numeric index.
+
+            This makes the "Available bands" palette effective even when index inputs
+            are pre-filled in the form.
+            """
+            mapped = map_band((name_value or "").strip() or None)
+            return mapped if mapped is not None else index_value
+
+        # Prefer NDVI band names if provided (red_name/nir_name)
+        red_from_name = map_band((red_name or "").strip() or None)
+        nir_from_name = map_band((nir_name or "").strip() or None)
+        if red_from_name is not None:
+            red_index = red_from_name
+        if nir_from_name is not None:
+            nir_index = nir_from_name
+
+        # Map RGB by index or name; if name is set, it wins over index
+        r_index = prefer_name_over_index(r_index, r_name)
+        g_index = prefer_name_over_index(g_index, g_name)
+        b_index = prefer_name_over_index(b_index, b_name)
+
+        if r_index is not None and g_index is not None and b_index is not None:
+            rgb_indices = [int(r_index), int(g_index), int(b_index)]
+            # If explicit NDVI bands were not provided, derive NDVI from chosen composite.
+            # This preserves legacy behavior (RGB-only inputs compute a pseudo-NDVI).
+            if red_from_name is None and nir_from_name is None:
+                red_index = int(r_index)
+                nir_index = int(g_index)
+        if r_name or g_name or b_name:
+            rgb_names = [r_name, g_name, b_name]
+
+        res = compute_ndvi(
+            file_path,
+            red_index=int(red_index),
+            nir_index=int(nir_index),
+            band_names=band_names,
+            rgb_indices=rgb_indices,
+            rgb_names=rgb_names,
+        )
+        # save visualization to filesystem
+        res.plot(save_path=ndvi_path_fs, show=False)
+        ok = True
+    except Exception as e:
+        ok = False
+        err_text = str(e)
+
+        # Make the most common failure easier to understand for users.
+        try:
+            from PIL import Image
+            import numpy as np
+
+            arr = np.array(Image.open(file_path))
+            channels = arr.shape[2] if arr.ndim == 3 else 1
+            if "out of range" in err_text.lower():
+                err_text = (
+                    f"{err_text}. Входное изображение содержит {channels} канал(а/ов). "
+                    "Палитра B01..B12 работает только для многоканальных снимков (например, GeoTIFF/stack), "
+                    "а для обычного RGB доступны только индексы 0..2."
+                )
+        except Exception:
+            pass
+
     # Save results on the Photo level
     pnd = db.query(PhotoNDVI).filter(PhotoNDVI.photo_id == photo.id).first()
     if not pnd:
@@ -162,12 +238,20 @@ def make_ndvi(request: Request, task_id: int, red_index: int = Form(0), nir_inde
 
     if ok:
         pnd.ndvi_path = ndvi_url
-        pnd.ndvi_params = json.dumps({"red_index": red_index, "nir_index": nir_index})
+        pnd.ndvi_params = json.dumps({
+            "red_index": int(red_index), "nir_index": int(nir_index), "red_name": red_name, "nir_name": nir_name,
+            "r_index": int(r_index) if r_index is not None else None, "g_index": int(g_index) if g_index is not None else None, "b_index": int(b_index) if b_index is not None else None,
+            "r_name": r_name, "g_name": g_name, "b_name": b_name
+        })
         pnd.ndvi_error = None
     else:
-        pnd.ndvi_error = f"NDVI не получилось для red={red_index}, nir={nir_index}"
+        pnd.ndvi_error = f"NDVI не получилось для red={red_index}, nir={nir_index}: {err_text if 'err_text' in locals() else ''}"
         pnd.ndvi_path = None
-        pnd.ndvi_params = json.dumps({"red_index": red_index, "nir_index": nir_index})
+        pnd.ndvi_params = json.dumps({
+            "red_index": int(red_index), "nir_index": int(nir_index), "red_name": red_name, "nir_name": nir_name,
+            "r_index": int(r_index) if r_index is not None else None, "g_index": int(g_index) if g_index is not None else None, "b_index": int(b_index) if b_index is not None else None,
+            "r_name": r_name, "g_name": g_name, "b_name": b_name
+        })
 
     db.add(pnd)
     try:

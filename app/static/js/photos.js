@@ -1,4 +1,77 @@
 document.addEventListener('DOMContentLoaded', function () {
+  function setActivePhoto(photoId) {
+    if (!photoId) return;
+    const controlsPane = document.getElementById('controls-photo-' + photoId);
+    const viewerPane = document.getElementById('viewer-photo-' + photoId);
+    document.querySelectorAll('.photo-controls-content .tab-pane').forEach(function (pane) {
+      pane.classList.remove('show', 'active');
+    });
+    document.querySelectorAll('.photo-viewer-content .tab-pane').forEach(function (pane) {
+      pane.classList.remove('show', 'active');
+    });
+    if (controlsPane) controlsPane.classList.add('show', 'active');
+    if (viewerPane) viewerPane.classList.add('show', 'active');
+
+    const activeAnalysis = controlsPane ? controlsPane.querySelector('.analysis-tab-button.active') : null;
+    if (activeAnalysis) {
+      const viewerTarget = activeAnalysis.getAttribute('data-viewer-target');
+      if (viewerTarget) {
+        const targetPane = document.querySelector(viewerTarget);
+        const viewerContent = targetPane ? targetPane.closest('.viewer-tab-content') : null;
+        if (viewerContent && targetPane) {
+          viewerContent.querySelectorAll('.tab-pane').forEach(function (pane) {
+            pane.classList.remove('show', 'active');
+          });
+          targetPane.classList.add('show', 'active');
+        }
+      }
+    }
+  }
+
+  // initial sync to the active photo
+  const initialActive = document.querySelector('.photo-tab-button.active');
+  if (initialActive) setActivePhoto(initialActive.getAttribute('data-photo-id'));
+
+  // sync photo tabs (left list) with controls pane and viewer pane
+  document.querySelectorAll('.photo-tab-button').forEach(function (btn) {
+    btn.addEventListener('shown.bs.tab', function () {
+      setActivePhoto(btn.getAttribute('data-photo-id'));
+    });
+    btn.addEventListener('click', function () {
+      setTimeout(function () {
+        setActivePhoto(btn.getAttribute('data-photo-id'));
+      }, 0);
+    });
+  });
+
+  // sync analysis tabs (left) with viewer panes (right)
+  document.querySelectorAll('.analysis-tab-button').forEach(function (btn) {
+    btn.addEventListener('shown.bs.tab', function () {
+      const viewerTarget = btn.getAttribute('data-viewer-target');
+      const infoTarget = btn.getAttribute('data-info-target');
+      if (!viewerTarget) return;
+      const targetPane = document.querySelector(viewerTarget);
+      if (!targetPane) return;
+      const viewerContent = targetPane.closest('.viewer-tab-content');
+      if (!viewerContent) return;
+      viewerContent.querySelectorAll('.tab-pane').forEach(function (pane) {
+        pane.classList.remove('show', 'active');
+      });
+      targetPane.classList.add('show', 'active');
+
+      if (infoTarget) {
+        const infoPane = document.querySelector(infoTarget);
+        const infoContent = infoPane ? infoPane.closest('.analysis-info') : null;
+        if (infoContent && infoPane) {
+          infoContent.querySelectorAll('.tab-pane').forEach(function (pane) {
+            pane.classList.remove('show', 'active');
+          });
+          infoPane.classList.add('show', 'active');
+        }
+      }
+    });
+  });
+
   document.querySelectorAll('.rename-photo-btn').forEach(function (btn) {
     btn.addEventListener('click', async function (ev) {
       ev.preventDefault();

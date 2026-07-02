@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segmentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .control-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .image-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .detections-summary {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .detections-summary h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .detection-item {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #eee;
+        }
+
+        .detection-class {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .detection-class.oil {
+            background: #d4f4dd;
+            color: #22c55e;
+        }
+
+        .detection-class.no-oil {
+            background: #fed7d7;
+            color: #ef4444;
+        }
+
+        .confidence {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44;
+            color: #c33;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .success {
+            background: #efe;
+            border-left: 4px solid #4f4;
+            color: #3c3;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-filename {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group input {
+                width: 100%;
+            }
+
+            .upload-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛰️ Segmentation Detector</h1>
+
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-text">Click or drag image here</div>
+            <div class="upload-hint">Supported formats: JPG, PNG</div>
+            <div class="preview-filename" id="previewFilename"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="confInput">Confidence Threshold</label>
+                <input type="number" id="confInput" min="0" max="1" step="0.05" value="0.25">
+            </div>
+            <div class="control-group">
+                <label for="iouInput">IoU Threshold</label>
+                <input type="number" id="iouInput" min="0" max="1" step="0.05" value="0.45">
+            </div>
+            <button id="uploadBtn" onclick="document.getElementById('fileInput').click()">Choose Image</button>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultsDiv = document.getElementById('results');
+        const confInput = document.getElementById('confInput');
+        const iouInput = document.getElementById('iouInput');
+        const previewFilename = document.getElementById('previewFilename');
+
+        let selectedFile = null;
+
+        // Drag & drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            previewFilename.textContent = `Selected: ${file.name}`;
+            
+            // Автоматически начинаем обработку
+            processImage();
+        }
+
+        async function processImage() {
+            if (!selectedFile) {
+                alert('Please select an image first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const conf = parseFloat(confInput.value);
+            const iou = parseFloat(iouInput.value);
+
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Processing image...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            resultsDiv.classList.add('show');
+
+            try {
+                // Запустить асинхронную задачу
+                const taskResponse = await fetch(
+                    `/api/segment/async-predict?conf=${conf}&iou=${iou}&return_image=true`,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+
+                if (!taskResponse.ok) {
+                    throw new Error(`Upload failed: ${taskResponse.statusText}`);
+                }
+
+                const taskData = await taskResponse.json();
+                const taskId = taskData.task_id;
+
+                // Опрашивать статус задачи
+                pollTaskStatus(taskId);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function pollTaskStatus(taskId) {
+            const maxAttempts = 120; // 2 минуты при опросе каждые 1 сек
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(`/api/segment/task-status/${taskId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'processing') {
+                        const progress = data.progress || 0;
+                        document.getElementById('progressFill').style.width = progress + '%';
+                        console.log(`Progress: ${progress}%`);
+                    } else if (data.status === 'success') {
+                        displayResults(data.result);
+                        return;
+                    } else if (data.status === 'error') {
+                        resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                        return;
+                    }
+
+                    // Подождать перед следующим опросом
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    attempts++;
+
+                } catch (error) {
+                    resultsDiv.innerHTML = `<div class="error">Error checking status: ${error.message}</div>`;
+                    return;
+                }
+            }
+
+            resultsDiv.innerHTML = `<div class="error">Task timeout - processing took too long</div>`;
+        }
+
+        function displayResults(result) {
+            const data = result.data;
+            const detections = data.detections || [];
+            let html = '<div class="success">✓ Processing complete!</div>';
+
+            if (data.image_url) {
+                html += `
+                    <div class="image-container">
+                        <img src="${data.image_url}" alt="Segmentation result">
+                    </div>
+                `;
+            }
+
+            if (detections.length > 0) {
+                html += `
+                    <div class="detections-summary">
+                        <h3>Detections: ${detections.length}</h3>
+                        ${detections.map((det, i) => `
+                            <div class="detection-item">
+                                <div>
+                                    <span class="detection-class ${det.class_name}">
+                                        ${det.class_name.toUpperCase()}
+                                    </span>
+                                </div>
+                                <div class="confidence">
+                                    Confidence: ${(det.confidence * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                html += '<div class="detections-summary"><h3>No detections found</h3></div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

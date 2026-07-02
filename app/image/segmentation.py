@@ -25,7 +25,7 @@ def run_segmentation(input_path: str, output_path: str, method: str = "yolo", co
             res = results[0]
             # res.plot() returns an image array with annotations
             try:
-                arr = res.plot()
+                arr = res.plot(boxes=False, masks=True)  # show masks only, no boxes
                 img = Image.fromarray(arr)
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 img.save(output_path)
@@ -40,14 +40,19 @@ def run_segmentation(input_path: str, output_path: str, method: str = "yolo", co
     try:
         import torch
         from torchvision import transforms
-        from torchvision.models.detection import maskrcnn_resnet50_fpn
+        from torchvision.models.detection import (
+            MaskRCNN_ResNet50_FPN_Weights,
+            maskrcnn_resnet50_fpn_v2,
+            maskrcnn_resnet50_fpn
+        )
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = maskrcnn_resnet50_fpn(pretrained=True).to(device)
+        weights = MaskRCNN_ResNet50_FPN_Weights.DEFAULT
+        model = maskrcnn_resnet50_fpn(weights=weights).to(device)
         model.eval()
 
         pil = Image.open(input_path).convert("RGB")
-        transform = transforms.Compose([transforms.ToTensor()])
+        transform = weights.transforms()
         img_t = transform(pil).to(device)
 
         with torch.no_grad():
@@ -55,25 +60,29 @@ def run_segmentation(input_path: str, output_path: str, method: str = "yolo", co
 
         output = outputs[0]
         scores = output["scores"].cpu().numpy()
-        boxes = output["boxes"].cpu().numpy()
         masks = output.get("masks")
 
-        h, w = pil.size[1], pil.size[0]
         base = np.array(pil).astype(np.uint8)
 
         # draw top detections above confidence
+        if scores.size == 0 or masks is None or len(masks) == 0:
+            return False, "Mask R-CNN: модель не нашла масок"
         keep_idx = np.where(scores >= conf)[0]
         if len(keep_idx) == 0:
-            return False, "Mask R-CNN: нет объектов выше порога"
+            # Fallback to a softer threshold or the top detection
+            soft_idx = np.where(scores >= 0.05)[0]
+            if len(soft_idx) == 0:
+                soft_idx = np.array([int(np.argmax(scores))])
+            keep_idx = soft_idx[:3]
 
         overlay = base.copy()
-        alpha = 0.5
+        alpha = 0.35
         for i in keep_idx:
             if masks is None:
                 continue
             mask = masks[i, 0].cpu().numpy()
             mask_bool = mask >= 0.5
-            color = np.random.randint(0, 255, size=(3,), dtype=np.uint8)
+            color = np.array([38, 166, 91], dtype=np.uint8)
             overlay[mask_bool] = (overlay[mask_bool] * (1 - alpha) + color * alpha).astype(np.uint8)
 
         out_img = Image.fromarray(overlay)

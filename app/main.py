@@ -14,6 +14,7 @@ from .models import User
 from .models import Task
 from app.features.tasks.routes import router as tasks_router
 from app.features.admin.routes import router as admin_router
+from app.features.segmentation.routes import router as segmentation_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(admin_router)
+app.include_router(segmentation_router)
 
 
 # --- служебная функция для получения пользователя из cookie ---
@@ -96,4 +98,13 @@ def home(request: Request, start_date: str | None = None, end_date: str | None =
             "start_date": start_date,
             "end_date": end_date,
         },
+    )
+
+
+@app.get("/segmentation")
+def segmentation_page(request: Request):
+    """Display segmentation tool page."""
+    return templates.TemplateResponse(
+        "segmentation.html",
+        {"request": request},
     )

@@ -32,3 +32,6 @@ test_results/result_2_1278302534_doseng-org_1_jpg.rf.4ee04ba8a80856bd86637fab8ef
 test_results/result_3_2241005_jpg.rf.6fcbb1be527bea8d9348f26964e74838.jpg
 test_results/result_4_2241005_jpg.rf.b49685e4b50a301f66311af694ace873.jpg
 test_results/result_5_25rl-large_jpg.rf.17f8f31f158dcbf07a21f7d656d132d0.jpg
+data2/
+datasetcoco/
+yolov8_seg_run/

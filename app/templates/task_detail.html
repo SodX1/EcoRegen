@@ -1,151 +1,226 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="task-page task-page-compact">
-  <div class="task-header card shadow-sm border-0">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
-      <div>
-        <h4 class="mb-1">{{ task.title }}</h4>
-        <p class="mb-1 text-muted">{{ task.description or 'Описание отсутствует' }}</p>
-        <small class="text-secondary">Создано: {{ task.created_at }}</small>
-      </div>
-      <a href="/" class="btn btn-outline-success btn-sm">На главную</a>
-    </div>
-  </div>
-
-  {% if not user %}
-    <div class="alert alert-warning mt-3 mb-0">Войдите, чтобы загружать фото и запускать анализ.</div>
-  {% else %}
-    <div class="card shadow-sm border-0 mt-3">
-      <div class="card-body">
-        <h6 class="mb-3">Загрузка фото</h6>
-        <form action="/tasks/{{ task.id }}/upload" enctype="multipart/form-data" method="post" class="row g-2 align-items-end">
-          <div class="col-md-9">
-            <label class="form-label mb-1">Выберите одно или несколько изображений</label>
-            <input type="file" name="files" accept="image/*" multiple required class="form-control" />
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="task-header card shadow-sm border-0">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
+          <div>
+            <h4 class="mb-1">{{ task.title }}</h4>
+            <p class="mb-1 text-muted">{{ task.description or 'Описание отсутствует' }}</p>
+            <small class="text-secondary">Создано: {{ task.created_at }}</small>
           </div>
-          <div class="col-md-3 d-grid">
-            <button class="btn btn-success">Загрузить</button>
-          </div>
-        </form>
+          <a href="/" class="btn btn-outline-success btn-sm">На главную</a>
+        </div>
       </div>
-    </div>
-  {% endif %}
 
-  {% if task.photos and task.photos|length > 0 %}
-    <div class="task-workspace task-workspace-compact card shadow-sm border-0 mt-3">
-      <div class="card-body task-workspace-body p-2 p-lg-1">
-        <div class="row g-3 h-100">
-          <div class="col-lg-3">
-            <aside class="photo-switcher card border-0 h-100">
-              <div class="card-body p-2">
-                <div class="small text-uppercase fw-semibold text-muted px-2 mb-2">Фото задачи</div>
-                <ul class="nav nav-pills flex-column gap-2 photo-switcher-list" id="photoTabs" role="tablist">
-                  {% for photo in task.photos %}
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link w-100 text-start {% if loop.first %}active{% endif %} photo-tab-button" id="photo-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#photo-{{ photo.id }}" type="button" role="tab" aria-controls="photo-{{ photo.id }}" aria-selected="{{ 'true' if loop.first else 'false' }}">
-                        <span class="photo-title" data-photo-id="{{ photo.id }}">{{ photo.title or ('Фото ' ~ loop.index) }}</span>
-                        <span class="btn btn-sm btn-link text-decoration-none rename-photo-btn p-0 ms-1" data-photo-id="{{ photo.id }}" title="Переименовать" role="button">✎</span>
-                      </button>
-                    </li>
-                  {% endfor %}
-                </ul>
+      {% if not user %}
+        <div class="alert alert-warning mt-3 mb-0">Войдите, чтобы загружать фото и запускать анализ.</div>
+      {% else %}
+        <div class="card shadow-sm border-0 mt-3">
+          <div class="card-body">
+            <h6 class="mb-3">Загрузка фото</h6>
+            <form action="/tasks/{{ task.id }}/upload" enctype="multipart/form-data" method="post" class="row g-2 align-items-end">
+              <div class="col-12">
+                <label class="form-label mb-1">Выберите одно или несколько изображений</label>
+                <input type="file" name="files" accept="image/*" multiple required class="form-control" />
               </div>
-            </aside>
+              <div class="col-12 d-grid">
+                <button class="btn btn-success">Загрузить</button>
+              </div>
+            </form>
           </div>
+        </div>
+      {% endif %}
 
-          <div class="col-lg-9">
-            <div class="tab-content h-100 photo-content">
+      {% if task.photos and task.photos|length > 0 %}
+        <aside class="photo-switcher card border-0 mt-3">
+          <div class="card-body p-2">
+            <div class="small text-uppercase fw-semibold text-muted px-2 mb-2">Фото задачи</div>
+            <ul class="nav nav-pills flex-column gap-2 photo-switcher-list" id="photoTabs" role="tablist">
               {% for photo in task.photos %}
-                <div class="tab-pane fade h-100 {% if loop.first %}show active{% endif %}" id="photo-{{ photo.id }}" role="tabpanel" aria-labelledby="photo-tab-{{ photo.id }}">
-                  <div class="compact-photo-pane compact-photo-pane-no-preview h-100">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link w-100 text-start {% if loop.first %}active{% endif %} photo-tab-button" id="photo-tab-{{ photo.id }}" data-photo-id="{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#viewer-photo-{{ photo.id }}" type="button" role="tab" aria-controls="viewer-photo-{{ photo.id }}" aria-selected="{{ 'true' if loop.first else 'false' }}">
+                    <span class="photo-title" data-photo-id="{{ photo.id }}">{{ photo.title or ('Фото ' ~ loop.index) }}</span>
+                    <span class="btn btn-sm btn-link text-decoration-none rename-photo-btn p-0 ms-1" data-photo-id="{{ photo.id }}" title="Переименовать" role="button">✎</span>
+                  </button>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </aside>
 
-                    <div class="compact-tools-wrap">
-                      <ul class="nav nav-tabs analysis-tabs" id="analysis-tabs-{{ photo.id }}" role="tablist">
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link active" id="orig-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#orig-pane-{{ photo.id }}" type="button" role="tab" aria-controls="orig-pane-{{ photo.id }}" aria-selected="true">Изначальное фото</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="ndvi-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#ndvi-pane-{{ photo.id }}" type="button" role="tab" aria-controls="ndvi-pane-{{ photo.id }}" aria-selected="false">NDVI</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="hsv-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#hsv-pane-{{ photo.id }}" type="button" role="tab" aria-controls="hsv-pane-{{ photo.id }}" aria-selected="false">HSV</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="segm-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#segm-pane-{{ photo.id }}" type="button" role="tab" aria-controls="segm-pane-{{ photo.id }}" aria-selected="false">Сегментация</button>
-                        </li>
-                      </ul>
+        <div class="tab-content photo-controls-content mt-3">
+          {% for photo in task.photos %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="controls-photo-{{ photo.id }}" role="tabpanel" aria-labelledby="photo-tab-{{ photo.id }}">
+              <div class="card shadow-sm border-0">
+                <div class="card-body p-3">
+                  <ul class="nav nav-tabs analysis-tabs" id="analysis-tabs-{{ photo.id }}" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active analysis-tab-button" id="controls-orig-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#controls-orig-pane-{{ photo.id }}" data-viewer-target="#viewer-orig-pane-{{ photo.id }}" data-info-target="#info-orig-pane-{{ photo.id }}" type="button" role="tab" aria-controls="controls-orig-pane-{{ photo.id }}" aria-selected="true">Изначальное фото</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link analysis-tab-button" id="controls-ndvi-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#controls-ndvi-pane-{{ photo.id }}" data-viewer-target="#viewer-ndvi-pane-{{ photo.id }}" data-info-target="#info-ndvi-pane-{{ photo.id }}" type="button" role="tab" aria-controls="controls-ndvi-pane-{{ photo.id }}" aria-selected="false">NDVI</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link analysis-tab-button" id="controls-hsv-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#controls-hsv-pane-{{ photo.id }}" data-viewer-target="#viewer-hsv-pane-{{ photo.id }}" data-info-target="#info-hsv-pane-{{ photo.id }}" type="button" role="tab" aria-controls="controls-hsv-pane-{{ photo.id }}" aria-selected="false">HSV</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link analysis-tab-button" id="controls-segm-tab-{{ photo.id }}" data-bs-toggle="tab" data-bs-target="#controls-segm-pane-{{ photo.id }}" data-viewer-target="#viewer-segm-pane-{{ photo.id }}" data-info-target="#info-segm-pane-{{ photo.id }}" type="button" role="tab" aria-controls="controls-segm-pane-{{ photo.id }}" aria-selected="false">Сегментация</button>
+                    </li>
+                  </ul>
 
-                      <div class="tab-content compact-tool border-top-0 rounded-bottom p-3">
-                        <div class="tab-pane fade show active" id="orig-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="orig-tab-{{ photo.id }}">
-                          <img src="{{ photo.path }}" class="img-fluid rounded mb-2" alt="original-{{ photo.id }}">
-                          <div class="small text-muted">Оригинальное изображение без обработки.</div>
+                  <div class="tab-content border-top-0 rounded-bottom pt-3">
+                    <div class="tab-pane fade show active" id="controls-orig-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-orig-tab-{{ photo.id }}">
+                      <div class="small text-muted">Оригинальное изображение без обработки.</div>
+                    </div>
+
+                    <div class="tab-pane fade" id="controls-ndvi-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-ndvi-tab-{{ photo.id }}">
+                      <form action="/tasks/{{ task.id }}/ndvi" method="post" class="row g-2 ndvi-form compact-form">
+                        <input type="hidden" name="photo_path" value="{{ photo.id }}" />
+                        <input type="hidden" name="red_index" value="0" />
+                        <input type="hidden" name="nir_index" value="3" />
+                        <div class="col-12">
+                          <div class="mb-2">
+                            <div class="small text-uppercase fw-semibold text-muted">Available bands (click or drag onto fields)</div>
+                            <div class="band-palette mt-2" data-photo-id="{{ photo.id }}">
+                              {% set bands = ['B01','B02','B03','B04','B05','B06','B07','B08','B8A','B09','B11','B12'] %}
+                              {% for b in bands %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary band-chip me-1 mb-1" draggable="true" data-band-name="{{ b }}" data-band-index="{{ loop.index0 }}">{{ b }}</button>
+                              {% endfor %}
+                            </div>
+                          </div>
                         </div>
-
-                        <div class="tab-pane fade" id="ndvi-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="ndvi-tab-{{ photo.id }}">
-                          {% if photo.ndvi and photo.ndvi.ndvi_path %}
-                            <img src="{{ photo.ndvi.ndvi_path }}" class="img-fluid rounded mb-2" alt="ndvi-{{ photo.id }}">
-                            <div class="small text-muted mb-2">{{ photo.ndvi.ndvi_params or '-' }}</div>
-                          {% elif photo.ndvi and photo.ndvi.ndvi_error %}
-                            <div class="alert alert-warning py-2 mb-2">{{ photo.ndvi.ndvi_error }}</div>
-                          {% endif %}
-                          <form action="/tasks/{{ task.id }}/ndvi" method="post" class="row g-2 ndvi-form compact-form">
-                            <input type="hidden" name="photo_path" value="{{ photo.id }}" />
-                            <div class="col-sm-4">
-                              <input type="number" name="red_index" value="0" class="form-control form-control-sm" min="0" placeholder="Red" />
-                            </div>
-                            <div class="col-sm-4">
-                              <input type="number" name="nir_index" value="3" class="form-control form-control-sm" min="0" placeholder="NIR" />
-                            </div>
-                            <div class="col-sm-4 d-grid">
-                              <button class="btn btn-success btn-sm">Сделать</button>
-                            </div>
-                          </form>
+                        <div class="col-12 mt-1">
+                          <div class="small text-muted mb-1">Composite / RGB: укажите индексы или имена каналов для RGB-композита</div>
+                          <div class="row g-2">
+                            <div class="col-sm-2"><input type="number" name="r_index" value="2" class="form-control form-control-sm band-target" min="0" placeholder="R idx" /></div>
+                            <div class="col-sm-2"><input type="text" name="r_name" value="" class="form-control form-control-sm band-target" placeholder="R name" /></div>
+                            <div class="col-sm-2"><input type="number" name="g_index" value="1" class="form-control form-control-sm band-target" min="0" placeholder="G idx" /></div>
+                            <div class="col-sm-2"><input type="text" name="g_name" value="" class="form-control form-control-sm band-target" placeholder="G name" /></div>
+                            <div class="col-sm-2"><input type="number" name="b_index" value="0" class="form-control form-control-sm band-target" min="0" placeholder="B idx" /></div>
+                            <div class="col-sm-2"><input type="text" name="b_name" value="" class="form-control form-control-sm band-target" placeholder="B name" /></div>
+                          </div>
                         </div>
-
-                        <div class="tab-pane fade" id="hsv-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="hsv-tab-{{ photo.id }}">
-                          {% if photo.analysis and photo.analysis.analysis_path %}
-                            <img src="{{ photo.analysis.analysis_path }}" class="img-fluid rounded my-2" alt="analysis-{{ photo.id }}">
-                            <div class="small text-muted mb-2">{{ photo.analysis.analysis_params or '-' }}</div>
-                          {% elif photo.analysis and photo.analysis.analysis_error %}
-                            <div class="alert alert-warning py-2 mt-2 mb-2">{{ photo.analysis.analysis_error }}</div>
-                          {% endif %}
-                          <form action="/tasks/{{ task.id }}/analyze_hsv" method="post" class="row g-2 hsv-form compact-form mt-1">
-                            <input type="hidden" name="photo_path" value="{{ photo.id }}" />
-                            <div class="col-sm-3"><input type="number" name="hue_low" value="35" class="form-control form-control-sm" min="0" max="360" placeholder="Hue low" /></div>
-                            <div class="col-sm-3"><input type="number" name="hue_high" value="85" class="form-control form-control-sm" min="0" max="360" placeholder="Hue high" /></div>
-                            <div class="col-sm-3"><input type="number" name="sat_min" value="0.2" step="0.01" class="form-control form-control-sm" min="0" max="1" placeholder="Sat" /></div>
-                            <div class="col-sm-3"><input type="number" name="val_min" value="0.2" step="0.01" class="form-control form-control-sm" min="0" max="1" placeholder="Val" /></div>
-                            <div class="col-12 d-grid d-sm-flex justify-content-sm-end">
-                              <button class="btn btn-success btn-sm px-3">Запустить</button>
-                            </div>
-                          </form>
+                        <div class="col-12 d-grid mt-2">
+                          <button class="btn btn-success btn-sm">Сделать</button>
                         </div>
+                      </form>
+                    </div>
 
-                        <div class="tab-pane fade" id="segm-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="segm-tab-{{ photo.id }}">
-                          <form action="/tasks/{{ task.id }}/segment" method="post" class="row g-2 segm-form compact-form mt-1">
-                            <input type="hidden" name="photo_path" value="{{ photo.id }}" />
-                            <div class="col-sm-6">
-                              <select name="method" class="form-select form-select-sm">
-                                <option value="yolo">YOLO</option>
-                                <option value="maskrcnn">Mask R-CNN</option>
-                              </select>
-                            </div>
-                            <div class="col-sm-3">
-                              <input type="number" name="conf" value="0.25" step="0.01" min="0" max="1" class="form-control form-control-sm" />
-                            </div>
-                            <div class="col-sm-3 d-grid">
-                              <button class="btn btn-primary btn-sm">Запустить</button>
-                            </div>
-                          </form>
-
-                          {% if photo.segmentation and photo.segmentation.segmentation_path %}
-                            <img src="{{ photo.segmentation.segmentation_path }}" class="img-fluid rounded mt-2" alt="segmentation-{{ photo.id }}">
-                            <div class="small text-muted mt-1">{{ photo.segmentation.segmentation_params or '-' }}</div>
-                          {% elif photo.segmentation and photo.segmentation.segmentation_error %}
-                            <div class="alert alert-warning py-2 mt-2 mb-0">{{ photo.segmentation.segmentation_error }}</div>
-                          {% endif %}
+                    <div class="tab-pane fade" id="controls-hsv-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-hsv-tab-{{ photo.id }}">
+                      <form action="/tasks/{{ task.id }}/analyze_hsv" method="post" class="row g-2 hsv-form compact-form mt-1">
+                        <input type="hidden" name="photo_path" value="{{ photo.id }}" />
+                        <div class="col-sm-6"><input type="number" name="hue_low" value="35" class="form-control form-control-sm" min="0" max="360" placeholder="Hue low" /></div>
+                        <div class="col-sm-6"><input type="number" name="hue_high" value="85" class="form-control form-control-sm" min="0" max="360" placeholder="Hue high" /></div>
+                        <div class="col-sm-6"><input type="number" name="sat_min" value="0.2" step="0.01" class="form-control form-control-sm" min="0" max="1" placeholder="Sat" /></div>
+                        <div class="col-sm-6"><input type="number" name="val_min" value="0.2" step="0.01" class="form-control form-control-sm" min="0" max="1" placeholder="Val" /></div>
+                        <div class="col-12 d-grid">
+                          <button class="btn btn-success btn-sm px-3">Запустить</button>
                         </div>
-                      </div>
+                      </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="controls-segm-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-segm-tab-{{ photo.id }}">
+                      <form action="/tasks/{{ task.id }}/segment" method="post" class="row g-2 segm-form compact-form mt-1">
+                        <input type="hidden" name="photo_path" value="{{ photo.id }}" />
+                        <div class="col-sm-6">
+                          <select name="method" class="form-select form-select-sm">
+                            <option value="yolo">YOLO</option>
+                            <option value="maskrcnn">Mask R-CNN</option>
+                          </select>
+                        </div>
+                        <div class="col-sm-6">
+                          <input type="number" name="conf" value="0.25" step="0.01" min="0" max="1" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-12 d-grid">
+                          <button class="btn btn-primary btn-sm">Запустить</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card shadow-sm border-0 mt-3">
+          <div class="card-body">
+            <h6 class="mb-2">Как начать работу</h6>
+            <ul class="small text-muted mb-3">
+              <li>Загрузите одно или несколько фото в левом блоке.</li>
+              <li>После загрузки появятся вкладки анализа: NDVI, HSV и сегментация.</li>
+              <li>Рекомендуемые форматы: JPG, PNG, GeoTIFF (если поддерживается).</li>
+            </ul>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge text-bg-light">NDVI</span>
+              <span class="badge text-bg-light">HSV</span>
+              <span class="badge text-bg-light">Segmentation</span>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-8">
+      {% if task.photos and task.photos|length > 0 %}
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-3">
+            <div class="tab-content photo-viewer-content">
+              {% for photo in task.photos %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="viewer-photo-{{ photo.id }}" role="tabpanel" aria-labelledby="photo-tab-{{ photo.id }}">
+                  <div class="tab-content viewer-tab-content" data-photo-id="{{ photo.id }}">
+                    <div class="tab-pane fade show active" id="viewer-orig-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-orig-tab-{{ photo.id }}">
+                      <img src="{{ photo.path }}" class="img-fluid rounded mb-2" alt="original-{{ photo.id }}">
+                    </div>
+
+                    <div class="tab-pane fade" id="viewer-ndvi-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-ndvi-tab-{{ photo.id }}">
+                      {% if photo.ndvi and photo.ndvi.ndvi_path %}
+                        <img src="{{ photo.ndvi.ndvi_path }}" class="img-fluid rounded mb-2" alt="ndvi-{{ photo.id }}">
+                        <div class="small text-muted mb-2">{{ photo.ndvi.ndvi_params or '-' }}</div>
+                      {% elif photo.ndvi and photo.ndvi.ndvi_error %}
+                        <div class="alert alert-warning py-2 mb-2">{{ photo.ndvi.ndvi_error }}</div>
+                      {% else %}
+                        <div class="alert alert-secondary py-2 mb-2">Запустите NDVI, чтобы увидеть результат.</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="viewer-hsv-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-hsv-tab-{{ photo.id }}">
+                      {% if photo.analysis and photo.analysis.analysis_path %}
+                        <img src="{{ photo.analysis.analysis_path }}" class="img-fluid rounded my-2" alt="analysis-{{ photo.id }}">
+                        <div class="small text-muted mb-2">{{ photo.analysis.analysis_params or '-' }}</div>
+                      {% elif photo.analysis and photo.analysis.analysis_error %}
+                        <div class="alert alert-warning py-2 mt-2 mb-2">{{ photo.analysis.analysis_error }}</div>
+                      {% else %}
+                        <div class="alert alert-secondary py-2 mt-2 mb-2">Запустите HSV, чтобы увидеть результат.</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="viewer-segm-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-segm-tab-{{ photo.id }}">
+                      {% if photo.segmentation and photo.segmentation.segmentation_path %}
+                        <img src="{{ photo.segmentation.segmentation_path }}" class="img-fluid rounded mt-2" alt="segmentation-{{ photo.id }}">
+                        <div class="small text-muted mt-1">{{ photo.segmentation.segmentation_params or '-' }}</div>
+                      {% elif photo.segmentation and photo.segmentation.segmentation_error %}
+                        <div class="alert alert-warning py-2 mt-2 mb-0">{{ photo.segmentation.segmentation_error }}</div>
+                      {% else %}
+                        <div class="alert alert-secondary py-2 mt-2 mb-0">Запустите сегментацию, чтобы увидеть результат.</div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="tab-content analysis-info mt-2" data-photo-id="{{ photo.id }}">
+                    <div class="tab-pane fade show active" id="info-orig-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-orig-tab-{{ photo.id }}">
+                      <div class="small text-muted">Оригинальное изображение без предварительной обработки. Используется как эталон для визуального сравнения и валидации результатов анализа.</div>
+                    </div>
+                    <div class="tab-pane fade" id="info-ndvi-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-ndvi-tab-{{ photo.id }}">
+                      <div class="small text-muted">NDVI (Normalized Difference Vegetation Index) — нормализованный вегетационный индекс $(NIR - Red)/(NIR + Red)$. Применяется для оценки фотосинтетической активности и биомассы растительности, а также для выявления деградации покрова.</div>
+                    </div>
+                    <div class="tab-pane fade" id="info-hsv-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-hsv-tab-{{ photo.id }}">
+                      <div class="small text-muted">HSV‑анализ переводит изображение в пространство оттенок–насыщенность–яркость и выполняет пороговую фильтрацию по заданным диапазонам. Используется для сегментации по спектральным признакам и выделения тематических классов.</div>
+                    </div>
+                    <div class="tab-pane fade" id="info-segm-pane-{{ photo.id }}" role="tabpanel" aria-labelledby="controls-segm-tab-{{ photo.id }}">
+                      <div class="small text-muted">Сегментация — пиксельная классификация, формирующая маски объектов по модели (например, YOLO/Mask R‑CNN). Позволяет локализовать области интереса и оценивать их площадь и форму.</div>
                     </div>
                   </div>
                 </div>
@@ -153,14 +228,23 @@
             </div>
           </div>
         </div>
-      </div>
+      {% else %}
+        <div class="card shadow-sm border-0 task-empty-state">
+          <div class="card-body">
+            <div class="empty-state-inner">
+              <div class="empty-state-icon">📷</div>
+              <div class="empty-state-title">Пока нет фото</div>
+              <div class="empty-state-text">Загрузите изображения, чтобы открыть инструменты анализа.</div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
     </div>
-  {% else %}
-    <div class="alert alert-info mt-3 mb-0">Пока нет фото. Загрузите изображения, чтобы открыть инструменты анализа.</div>
-  {% endif %}
+  </div>
 </div>
 
 <script src="/static/js/hsv.js"></script>
 <script src="/static/js/ndvi.js"></script>
+<script src="/static/js/segmentation.js"></script>
 <script src="/static/js/photos.js"></script>
 {% endblock %}
